@@ -16,6 +16,7 @@ export default function Chat() {
     user,
     userList,
     messages,
+    isLoading,
     typingUsers,
     sendMessage,
     notifyTyping,
@@ -104,79 +105,108 @@ export default function Chat() {
           selectedUser ? "-translate-x-full md:block" : "translate-x-0"
         }`}
       >
-        <div className="flex flex-col h-full">
-          <div className="px-2 h-14 flex items-center space-x-2 shadow dark:shadow-gray-800">
-            <Profile user={user} />
-            <h3 className="text-2xl font-semibold text-orange-400">Convo</h3>
+        <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-950">
+          <div className="sticky top-0 z-20 p-4 flex items-center space-x-4 shadow dark:shadow-gray-800 bg-gray-50 dark:bg-gray-950">
+            <Profile user={user} isLoading={isLoading} />
+            <h3 className="text-2xl font-semibold text-orange-400 dark:text-orange-500 ">
+              Convo
+            </h3>
           </div>
-          <div className="flex-grow py-2 overflow-scroll">
-            {userList.map((u) => {
-              const lastMsg = chatMeta.lastMessageMap[u._id];
-              const deliveredCount = chatMeta.deliveredCountMap[u._id] || 0;
-
-              return (
-                <div
-                  key={u._id}
-                  onClick={() => handleSelectUser(u)}
-                  className="cursor-pointer p-2 hover:bg-gray-200 dark:hover:bg-gray-900"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="relative">
-                        <img
-                          src={u.avatar || "/user.avif"}
-                          className="w-9 h-9 rounded-full"
-                        />
-                        {u.isOnline && (
-                          <span className="absolute bottom-0 right-0 block w-3 h-3 rounded-full border-1 border-white dark:border-gray-900 bg-orange-400" />
-                        )}
-                      </div>
-
-                      <div className="flex flex-col">
-                        <span className="font-medium">{u.name}</span>
-
-                        <span
-                          className={`text-sm flex items-center gap-1 ${
-                            typingUsers[u._id] && "text-orange-400 italic"
-                          }`}
-                        >
-                          {typingUsers[u._id]
-                            ? "typing..."
-                            : lastMsg && (
-                                <>
-                                  {lastMsg.senderId === user._id && (
-                                    <span
-                                      className={`flex ${
-                                        lastMsg.status === "seen"
-                                          ? "text-blue-500"
-                                          : "text-gray-500 dark:text-gray-200"
-                                      }`}
-                                    >
-                                      <CheckIcon className="h-4 w-4" />
-                                      {(lastMsg.status === "delivered" ||
-                                        lastMsg.status === "seen") && (
-                                        <CheckIcon className="h-4 w-4 -ml-2" />
-                                      )}
-                                    </span>
-                                  )}
-                                  <span className="dark:text-gray-400 text-gray-500 truncate max-w-[270px]">
-                                    {lastMsg.message}
-                                  </span>
-                                </>
-                              )}
-                        </span>
+          <div className="grow py-1 overflow-y-auto">
+            {/* Skeleton loaders */}
+            {isLoading ? (
+              <div className="flex flex-col items-center h-full">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="animate-pulse rounded-lg hover:bg-gray-200 dark:hover:bg-gray-900 px-4 py-3 w-full"
+                  >
+                    <div className="flex flex-row space-x-4">
+                      <div className="bg-gray-300 dark:bg-gray-700 rounded-full h-12 w-12" />
+                      <div className="flex flex-col justify-center">
+                        <div className="bg-gray-300 dark:bg-gray-700 rounded h-4 w-32 mb-2" />
+                        <div className="bg-gray-300 dark:bg-gray-700 rounded h-3 w-48" />
                       </div>
                     </div>
-
-                    {deliveredCount > 0 && (
-                      <span className="dark:bg-orange-500 bg-orange-400 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-                        {deliveredCount}
-                      </span>
-                    )}
                   </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            ) : (
+              userList.map((u) => {
+                const lastMsg = chatMeta.lastMessageMap[u._id];
+                const deliveredCount = chatMeta.deliveredCountMap[u._id] || 0;
+
+                return (
+                  <div
+                    key={u._id}
+                    onClick={() => handleSelectUser(u)}
+                    className={`cursor-pointer ${
+                      selectedUser?._id === u._id
+                        ? "bg-gray-200 dark:bg-gray-900"
+                        : "hover:bg-gray-200 dark:hover:bg-gray-900"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between px-4 py-3 ">
+                      <div className="flex items-center space-x-4">
+                        <div className="relative">
+                          <img
+                            src={u.avatar || "/user.avif"}
+                            className="w-12 h-12  rounded-full"
+                          />
+                          {u.isOnline && (
+                            <span className="absolute bottom-0 right-0 block w-3 h-3 rounded-full border-1 border-white dark:border-gray-900 bg-orange-400 dark:bg-orange-500" />
+                          )}
+                        </div>
+
+                        <div className="flex flex-col">
+                          <span className="text-md dark:text-gray-50 text-gray-800 font-medium">
+                            {u.name}
+                          </span>
+
+                          <span
+                            className={`text-sm flex items-center gap-1 ${
+                              typingUsers[u._id] &&
+                              "text-orange-400 dark:text-orange-500 italic"
+                            }`}
+                          >
+                            {typingUsers[u._id]
+                              ? "typing..."
+                              : lastMsg && (
+                                  <>
+                                    {lastMsg.senderId === user._id && (
+                                      <span
+                                        className={`flex ${
+                                          lastMsg.status === "seen"
+                                            ? "text-blue-500"
+                                            : "text-gray-500 dark:text-gray-200"
+                                        }`}
+                                      >
+                                        <CheckIcon className="h-4 w-4" />
+                                        {(lastMsg.status === "delivered" ||
+                                          lastMsg.status === "seen") && (
+                                          <CheckIcon className="h-4 w-4 -ml-3" />
+                                        )}
+                                      </span>
+                                    )}
+                                    <span className="dark:text-gray-400 text-gray-500 truncate max-w-[270px]">
+                                      {lastMsg.message}
+                                    </span>
+                                  </>
+                                )}
+                          </span>
+                        </div>
+                      </div>
+
+                      {deliveredCount > 0 && (
+                        <span className="dark:bg-orange-500 bg-orange-400 text-white text-sm font-semibold px-2 py-0.5 rounded-full">
+                          {deliveredCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -189,7 +219,7 @@ export default function Chat() {
       >
         {selectedUser ? (
           <div className=" flex flex-col h-full">
-            <div className="flex space-x-1 items-center px-2 h-14 shadow">
+            <div className="sticky top-0 z-20 flex space-x-2 items-center p-2 h-16 shadow bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
               <button
                 onClick={() => setSelectedUser(null)}
                 className="text-xl md:hidden"
@@ -205,7 +235,7 @@ export default function Chat() {
                 <p
                   className={`text-xs ${
                     selectedUser.isOnline
-                      ? "text-orange-500 dark:text-orange-400"
+                      ? "text-orange-400 dark:text-orange-500"
                       : "text-gray-500 dark:text-gray-400"
                   }`}
                 >
@@ -220,27 +250,27 @@ export default function Chat() {
 
             <div
               ref={messagesEndRef}
-              className="bg-gray-200 dark:bg-gray-900 flex-grow overflow-y-auto pt-2 px-2 "
+              className="bg-gray-200 dark:bg-gray-900 grow overflow-y-auto pt-2 px-2 "
             >
               {filteredMessages.map((m) => (
                 <div
                   key={m._id}
-                  className={`mb-2 flex ${
+                  className={`mb-1 flex ${
                     m.senderId === user._id ? "justify-end" : "justify-start"
                   }`}
                 >
                   <div
-                    className={`px-3 rounded-lg max-w-xs flex items-center space-x-2 text-gray-950 dark:text-gray-50 ${
+                    className={`px-3 py-0.5 rounded-xl max-w-xs md:max-w-md flex items-center space-x-2 text-gray-900 dark:text-gray-50 ${
                       m.senderId === user._id
                         ? " bg-orange-400 dark:bg-orange-500"
-                        : "bg-white dark:bg-gray-700"
+                        : "bg-white shadow-sm dark:bg-gray-800"
                     }`}
                   >
-                    <p className="text-sm break-words whitespace-pre-wrap">
+                    <p className="text-md break-words whitespace-pre-wrap">
                       {m.message}
                     </p>
                     <div className="flex justify-end items-end space-x-1 pt-3 self-end">
-                      <p className="text-xs text-gray-700 dark:text-gray-300 w-[50px]">
+                      <p className="text-xs text-gray-800 dark:text-gray-300 w-[50px]">
                         {new Date(m.timestamp).toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
@@ -257,7 +287,7 @@ export default function Chat() {
                           <CheckIcon className="h-4 w-4" />
                           {(m.status === "delivered" ||
                             m.status === "seen") && (
-                            <CheckIcon className="h-4 w-4 -ml-2" />
+                            <CheckIcon className="h-4 w-4 -ml-3" />
                           )}
                         </div>
                       )}
@@ -269,25 +299,40 @@ export default function Chat() {
 
             <form
               onSubmit={handleSendMessage}
-              className="flex p-2 space-x-1 bg-gray-200 dark:bg-gray-900"
+              className="flex flex-row items-end p-1 md:pb-2 space-x-1 bg-gray-200 dark:bg-gray-900"
             >
-              <input
+              <textarea
                 value={msg}
                 onChange={(e) => {
                   setMsg(e.target.value);
                   notifyTyping(selectedUser._id);
+
+                  // Auto resize
+                  e.target.style.height = "auto"; // reset height
+                  const maxHeight = 100; // max height in px
+                  e.target.style.height =
+                    Math.min(e.target.scrollHeight, maxHeight) + "px";
                 }}
-                className="flex-1 shadow px-4 py-2 rounded-full bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Type a message"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
+                className="flex-1 resize-none overflow-y-auto shadow px-4 py-2 rounded-2xl 
+                text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800
+                focus:outline-none focus:ring-1 focus:ring-orange-400 dark:focus:ring-orange-500"
+                placeholder="Type a message..."
+                style={{ minHeight: "44px", maxHeight: "100px" }}
               />
               <button type="submit">
-                <PaperAirplaneIcon className="h-10 w-10 rounded-full bg-orange-500 text-white p-2 hover:bg-orange-600" />
+                <PaperAirplaneIcon className="h-11 w-11 rounded-full bg-orange-500 text-white p-2 hover:bg-orange-600" />
               </button>
             </form>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900">
-            <div className="bg-white dark:bg-gray-700 px-2 py-1 rounded-2xl shadow">
+          <div className="flex items-center justify-center h-full bg-gray-200 dark:bg-gray-900">
+            <div className="text-gray-900 bg-white dark:text-gray-100 dark:bg-gray-800 px-2 py-1 rounded-2xl shadow">
               <h1> Select a user to start chatting.</h1>
             </div>
           </div>

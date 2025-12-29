@@ -6,11 +6,12 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
   const [userList, setUserList] = useState([]);
   const [messages, setMessages] = useState([]);
   const [typingUsers, setTypingUsers] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const selectedUserRef = useRef(null);
   const token = localStorage.getItem("token");
 
   const playSound = () => {
-    const audio = new Audio("/notification.mp3"); 
+    const audio = new Audio("/notification.mp3");
     audio.play();
   };
 
@@ -37,7 +38,6 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
     });
 
     socket.on("message_receive", (msg) => {
-
       const currentUser = selectedUserRef.current;
 
       if (currentUser && currentUser._id === msg.senderId) {
@@ -59,9 +59,10 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
         };
 
         setMessages((prev) => [...prev, updatedMsg]);
-
+        const senderName =
+          (userList.find((u) => u._id === msg.senderId)).name;
         if (Notification.permission === "granted") {
-          new Notification(`New message from ${msg.senderId}`, {
+          new Notification(`New message from ${senderName}`, {
             body: msg.message,
             icon: "/chat.svg",
           });
@@ -109,11 +110,17 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
   }, [user]);
 
   const fetchUser = async () => {
+    setIsLoading(true);
     const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
+    setIsLoading(false);
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
     setUser(data.user);
     setUserList(data.userList);
 
@@ -136,7 +143,6 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
         status: "delivered",
       });
     });
-
   };
 
   const updateMessageStatus = (messageId, status) => {
@@ -184,6 +190,7 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
     setUserList,
     messages,
     setMessages,
+    isLoading,
     typingUsers,
     sendMessage,
     notifyTyping,

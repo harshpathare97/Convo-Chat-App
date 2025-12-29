@@ -10,12 +10,12 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["chat.svg", "apple-touch-icon.png"],
+      includeAssets: ["chat.svg"],
       manifest: {
         name: "Convo Chat App",
         short_name: "Convo",
         description: "Real-time web chat app",
-        theme_color: "#ff6600",
+        theme_color: "#FA8229",
         background_color: "#ffffff",
         display: "standalone",
         start_url: "/",

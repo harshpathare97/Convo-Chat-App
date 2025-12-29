@@ -8,7 +8,7 @@ export default function Header() {
     <header className="bg-gradient-to-r from-orange-600 to-orange-400 dark:from-gray-900 dark:to-gray-700 p-4 flex justify-between items-center shadow-md transition-colors">
       <a
         href="/"
-        className="text-2xl font-semibold text-white dark:text-orange-400 tracking-wide drop-shadow"
+        className="text-2xl font-semibold text-white dark:text-orange-500 tracking-wide drop-shadow"
       >
         Convo - Chat App
       </a>
@@ -19,7 +19,7 @@ export default function Header() {
         {darkMode ? (
           <SunIcon className="h-6 w-6 text-yellow-400" />
         ) : (
-          <MoonIcon className="h-6 w-6 text-white" />
+          <MoonIcon className="h-6 w-6 text-gray-50" />
         )}
       </button>
     </header>

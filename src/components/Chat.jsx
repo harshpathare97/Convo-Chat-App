@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useLayoutEffect } from "react";
 import { useChatSocket } from "../hooks/useChatSocket";
 import Profile from "./Profile";
 import { PaperAirplaneIcon, CheckIcon } from "@heroicons/react/24/solid";
@@ -8,8 +8,20 @@ export default function Chat() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [msg, setMsg] = useState("");
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
   const token = localStorage.getItem("token");
   let navigate = useNavigate();
+
+  const MAX_HEIGHT = 100;
+
+  // Auto resize on content change
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, MAX_HEIGHT) + "px";
+  }, [msg]);
 
   const {
     fetchUser,
@@ -302,16 +314,13 @@ export default function Chat() {
               className="flex flex-row items-end p-1 md:pb-2 space-x-1 bg-gray-200 dark:bg-gray-900"
             >
               <textarea
+                ref={textareaRef}
                 value={msg}
+                rows={1}
+                placeholder="Type a message..."
                 onChange={(e) => {
                   setMsg(e.target.value);
                   notifyTyping(selectedUser._id);
-
-                  // Auto resize
-                  e.target.style.height = "auto"; // reset height
-                  const maxHeight = 100; // max height in px
-                  e.target.style.height =
-                    Math.min(e.target.scrollHeight, maxHeight) + "px";
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -322,7 +331,6 @@ export default function Chat() {
                 className="flex-1 resize-none overflow-y-auto shadow px-4 py-2 rounded-2xl 
                 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800
                 focus:outline-none focus:ring-1 focus:ring-orange-400 dark:focus:ring-orange-500"
-                placeholder="Type a message..."
                 style={{ minHeight: "44px", maxHeight: "100px" }}
               />
               <button type="submit">

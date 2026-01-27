@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import socket from "../services/socket";
+import { useNavigate } from "react-router-dom";
 
 export const useChatSocket = (selectedUser, setSelectedUser) => {
   const [user, setUser] = useState({});
@@ -9,6 +10,7 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
   const [isLoading, setIsLoading] = useState(false);
   const selectedUserRef = useRef(null);
   const token = localStorage.getItem("token");
+  let navigate = useNavigate();
 
   const playSound = () => {
     const audio = new Audio("/notification.mp3");
@@ -59,8 +61,7 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
         };
 
         setMessages((prev) => [...prev, updatedMsg]);
-        const senderName =
-          (userList.find((u) => u._id === msg.senderId)).name;
+        const senderName = userList.find((u) => u._id === msg.senderId).name;
         if (Notification.permission === "granted") {
           new Notification(`New message from ${senderName}`, {
             body: msg.message,
@@ -119,6 +120,7 @@ export const useChatSocket = (selectedUser, setSelectedUser) => {
     setIsLoading(false);
     if (data.error) {
       alert(data.error);
+      navigate("/login");
       return;
     }
     setUser(data.user);
